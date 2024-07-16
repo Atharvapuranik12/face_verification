@@ -2,8 +2,9 @@ from flask import Flask, render_template, request, jsonify
 import os
 import cv2
 import numpy as np
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import model_from_json
 import base64
+import zipfile
 
 app = Flask(__name__)
 
@@ -20,10 +21,7 @@ def verify_images(model, img1, img2):
 
     embedding1 = get_embedding(model, img1)
     embedding2 = get_embedding(model, img2)
-
     distance = np.linalg.norm(embedding1 - embedding2)
-
-
     threshold = 0.5
 
     print(f"Distance between embeddings: {distance}")
@@ -33,16 +31,35 @@ def verify_images(model, img1, img2):
     else:
         return False
 
-# Route to render the index.html page
+def load_compressed_model(json_path, zip_path):
+    # Load the model architecture
+    with open(json_path, 'r') as json_file:
+        model_json = json_file.read()
+    model = model_from_json(model_json)
+
+    # Extract the weights file from the zip archive
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall()
+
+    # Load the weights into the model
+    weights_path = zip_ref.namelist()[0]
+    model.load_weights(weights_path)
+
+    os.remove(weights_path)
+
+    return model
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/verify', methods=['POST'])
 def verify():
+    model_json_path = 'C:/Users/ss/OneDrive/Desktop/face_ver/cnn_face_verification_architecture.json'
+    weights_zip_path = 'C:/Users/ss/OneDrive/Desktop/face_ver/cnn_face_verification_weights.weights.zip'
+
     # Load the trained model
-    model_path = 'C:/Users/ss/OneDrive/Desktop/face_ver/cnn_face_verification.h5'
-    model = load_model(model_path)
+    model = load_compressed_model(model_json_path, weights_zip_path)
 
     # Decode and preprocess the first image from the camera
     data = request.get_json()
