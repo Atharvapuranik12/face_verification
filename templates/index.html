@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Face Verification</title>
+    <style>
+        #videoElement {
+            width: 300px;
+            height: 225px;
+            background-color: #666;
+        }
+        #captureButton {
+            display: block;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Face Verification</h1>
+    <video autoplay="true" id="videoElement"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <button id="captureButton">Capture Image</button>
+    <button id="verifyButton" style="display:none;">Verify</button>
+    <p id="message"></p>
+
+    <script>
+        // Get access to the camera
+        var video = document.querySelector("#videoElement");
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+            video.srcObject = stream;
+        })
+        .catch(function(err) {
+            console.log("Something went wrong!", err);
+        });
+
+        var capturedImages = [];
+
+        document.getElementById('captureButton').addEventListener('click', function() {
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+            var dataUrl = canvas.toDataURL('image/png');
+            capturedImages.push(dataUrl);
+
+            if (capturedImages.length === 1) {
+                document.getElementById('message').innerText = 'First image captured. Capture the second image.';
+            } else {
+                document.getElementById('message').innerText = 'Both images captured. Ready to verify.';
+                document.getElementById('verifyButton').style.display = 'block';
+            }
+        });
+
+        document.getElementById('verifyButton').addEventListener('click', function() {
+            if (capturedImages.length === 2) {
+                fetch('/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ img1: capturedImages[0], img2: capturedImages[1] })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('message').innerText = data.message;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            } else {
+                document.getElementById('message').innerText = 'Please capture both images first.';
+            }
+        });
+    </script>
+</body>
+</html>
