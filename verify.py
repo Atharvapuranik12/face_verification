@@ -55,8 +55,8 @@ def index():
 
 @app.route('/verify', methods=['POST'])
 def verify():
-    model_json_path = 'C:/Users/ss/OneDrive/Desktop/face_ver/cnn_face_verification_architecture.json'
-    weights_zip_path = 'C:/Users/ss/OneDrive/Desktop/face_ver/cnn_face_verification_weights.weights.zip'
+    model_json_path = 'cnn_face_verification_architecture.json'
+    weights_zip_path = 'cnn_face_verification_weights.weights.zip'
 
     # Load the trained model
     model = load_compressed_model(model_json_path, weights_zip_path)
