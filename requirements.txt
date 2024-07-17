@@ -4,3 +4,4 @@ numpy
 tensorflow
 requests
 gunicorn
+flask-cors
