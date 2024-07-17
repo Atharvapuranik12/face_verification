@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 import os
 import cv2
 import numpy as np
@@ -7,6 +8,7 @@ import base64
 import zipfile
 
 app = Flask(__name__)
+CORS(app, origins=["http://localhost:5173"])
 
 def preprocess_image(img):
     img = cv2.resize(img, (64, 64))  
@@ -18,7 +20,6 @@ def get_embedding(model, img):
     return model.predict(img)
 
 def verify_images(model, img1, img2):
-
     embedding1 = get_embedding(model, img1)
     embedding2 = get_embedding(model, img2)
     distance = np.linalg.norm(embedding1 - embedding2)
