@@ -8,7 +8,7 @@ import base64
 import zipfile
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173"])
+CORS(app, origins=["*"])
 
 def preprocess_image(img):
     img = cv2.resize(img, (64, 64))  
